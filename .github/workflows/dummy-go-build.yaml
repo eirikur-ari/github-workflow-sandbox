@@ -19,7 +19,7 @@ jobs:
           go-version-file: samples/golang/dummy/go.mod
 
       - name: Test
-        run: samples/golang/dummy/make test
+        run: make -C samples/golang/dummy test
     
       - name: Build
         run: samples/golang/dummy/make build
