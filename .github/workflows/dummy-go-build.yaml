@@ -22,4 +22,4 @@ jobs:
         run: make -C samples/golang/dummy test
     
       - name: Build
-        run: samples/golang/dummy/make build
+        run: make -C samples/golang/dummy build

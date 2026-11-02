@@ -9,9 +9,18 @@ LDFLAGS := -s -w
 ## help: Show this help
 .PHONY: help
 help:
-	@echo "Usage: make [target]"
+	@echo "Usage: make [task]"
 	@echo ""
 	@sed -n 's/^## //p' $(MAKEFILE_LIST) | column -t -s ':' | sed 's/^/  /'
+
+## all: Run every task
+.PHONY: all
+all: test build
+
+## clean: Remove build artifacts
+.PHONY: clean
+clean:
+	@rm -rf $(BIN_DIR)
 
 ## build: Compile the binary
 .PHONY: build
