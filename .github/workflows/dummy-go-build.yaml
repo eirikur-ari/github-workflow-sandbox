@@ -1,4 +1,4 @@
-name: Dummy GoBuild
+name: Dummy Go Build
 
 on:
   workflow_dispatch:
