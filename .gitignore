@@ -9,12 +9,6 @@ dist/
 tmp/
 log/
 
-# Claude
-.claude/settings.local.json
-
-# GitHub
-!.github/actions/build
-
 # Other
 *.env
 *.log
