@@ -1,0 +1,48 @@
+name: Dummy Go Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, for example 1.2.3, which must be the latest version in the changelog. Leave empty to release the latest version in the changelog after approval
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+    build:
+        name: Build and Release
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            with:
+              persist-credentials: false
+
+          - name: Set up Go
+            uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+            with:
+              go-version-file: samples/golang/dummy/go.mod
+              cache-dependency-path: samples/golang/dummy/go.mod
+
+          - name: Build and Release
+            uses: ./.github/actions/golang/release
+            with:
+              version: ${{ github.event.inputs.version }}
+        
+
+          - name: Test
+            run: make -C samples/golang/dummy test
+    
+          - name: Build
+            run: make -C samples/golang/dummy build
+
+          - name: Acceptance Test
+            run: make test-acceptance
+            
+          - name: Package
+            uses: ./.github/actions/golang/package
+            with:
+              artifact-name: dist-${{ matrix.os }}
