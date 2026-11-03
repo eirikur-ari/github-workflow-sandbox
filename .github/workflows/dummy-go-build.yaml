@@ -43,4 +43,4 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/golang/package
         with:
-          artifact-name: dummy-linux-amd64.tar.gz
+          artifact-name: dist-${{ matrix.os }}
