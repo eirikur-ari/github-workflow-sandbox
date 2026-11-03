@@ -14,7 +14,7 @@ runs:
   steps:
     - name: Package ${{ inputs.artifact-name }}
       shell: bash
-      run: make package
+      run: make -C samples/golang/dummy package
 
     - name: Upload Archive
       if: ${{ inputs.upload == 'true' }}

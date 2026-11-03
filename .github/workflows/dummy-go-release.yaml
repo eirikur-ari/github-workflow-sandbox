@@ -34,7 +34,7 @@ jobs:
             run: make -C samples/golang/dummy build
 
           - name: Acceptance Test
-            run: make test-acceptance
+            run: make -C samples/golang/dummy test-acceptance
             
           - name: Package
             uses: ./.github/actions/golang/package
