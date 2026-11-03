@@ -47,6 +47,6 @@ jobs:
 
       - name: Package
         if: ${{ github.event_name == 'pull_request' }}
-        uses: ./.github/actions/golang-package
+        uses: ./.github/actions/golang/package
         with:
           artifact-name: dist-${{ matrix.os }}

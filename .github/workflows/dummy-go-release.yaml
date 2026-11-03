@@ -27,12 +27,6 @@ jobs:
               go-version-file: samples/golang/dummy/go.mod
               cache-dependency-path: samples/golang/dummy/go.mod
 
-          - name: Build and Release
-            uses: ./.github/actions/golang/release
-            with:
-              version: ${{ github.event.inputs.version }}
-        
-
           - name: Test
             run: make -C samples/golang/dummy test
     
@@ -43,6 +37,6 @@ jobs:
             run: make test-acceptance
             
           - name: Package
-            uses: ./.github/actions/golang-package
+            uses: ./.github/actions/golang/package
             with:
               artifact-name: dist-${{ matrix.os }}
