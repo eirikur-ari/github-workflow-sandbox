@@ -85,6 +85,7 @@ jobs:
             -Dsonar.exclusions=docs/**
             -Dsonar.coverage.exclusions=**/*_test.go,internal/testutil/**
             -Dsonar.qualitygate.wait=false
+          projectBaseDir: ${{ env.PROJECT_PATH }}
             
   build:
     name: Dummy Build

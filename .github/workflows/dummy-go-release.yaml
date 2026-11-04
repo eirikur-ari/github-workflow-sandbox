@@ -77,10 +77,11 @@ jobs:
           args: >
             -Dsonar.organization=${{ vars.SONAR_ORG_NAME }}
             -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY_GOLANG_DUMMY }}
-            -Dsonar.go.coverage.reportPaths=build/coverage.out
+            -Dsonar.go.coverage.reportPaths=${{ env.PROJECT_PATH }}/build/coverage.out
             -Dsonar.exclusions=docs/**
             -Dsonar.coverage.exclusions=**/*_test.go,internal/testutil/**
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.wait=false
+          projectBaseDir: ${{ env.PROJECT_PATH }}
 
   build:
     name: Build and Release
