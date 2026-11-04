@@ -23,6 +23,8 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      PROJECT_PATH: samples/golang/dummy
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -32,14 +34,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: samples/golang/dummy/go.mod
-          cache-dependency-path: samples/golang/dummy/go.mod
+          go-version-file: ${{ env.PROJECT_PATH }}/go.mod
+          cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
 
       - name: Test
-        run: make -C samples/golang/dummy test
-    
+        run: make -C ${{ env.PROJECT_PATH }} test
+
       - name: Build
-        run: make -C samples/golang/dummy build
+        run: make -C ${{ env.PROJECT_PATH }} build
 
       - name: Acceptance Test
         if: ${{ github.event_name == 'pull_request' }}
@@ -50,3 +52,5 @@ jobs:
         uses: ./.github/actions/golang/package
         with:
           artifact-name: dist-${{ matrix.os }}
+          upload-artifact: 'true'
+          project-path: ${{ env.PROJECT_PATH }}

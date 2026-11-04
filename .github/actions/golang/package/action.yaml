@@ -2,9 +2,15 @@ name: Package
 description: Packages the binary into an archive
 
 inputs:
-  upload:
+  upload-artifact:
     description: Upload the archive
     default: 'false'
+  project-path:
+    description: Path to the project to package
+    default: ''
+  artifact-path:
+    description: Path to the artifact to upload
+    default: 'build/dist/*.tar.gz'
   artifact-name:
     description: Name of the uploaded artifact
     required: true
@@ -14,14 +20,14 @@ runs:
   steps:
     - name: Package
       shell: bash
-      run: make -C samples/golang/dummy package
+      run: make -C ${{ inputs.project-path }} package
 
     - name: Upload Archive
-      if: ${{ inputs.upload == 'true' }}
+      if: ${{ inputs.upload-artifact == 'true' }}
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: ${{ inputs.artifact-name }}
-        path: samples/golang/dummy/build/dist/*.tar.gz
+        path: ${{ inputs.project-path == '' && inputs.artifact-path || format('{0}/{1}', inputs.project-path, inputs.artifact-path) }}
         if-no-files-found: error
         # An approval of the release can wait up to 30 days
         retention-days: 30
