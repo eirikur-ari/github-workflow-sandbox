@@ -37,6 +37,10 @@ clean:
 vet:
 	go vet -tags "integration acceptance" ./...
 
+## lint: Run all non-mutating source and dependency checks
+.PHONY: lint
+lint: fmt-lint
+
 ## fmt-lint: Check source code is formatted, without changing anything
 .PHONY: fmt-lint
 fmt-lint:
