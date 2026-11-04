@@ -30,10 +30,10 @@ jobs:
          cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
 
       - name: Vet
-        run: make vet
+        run: make -C ${{ env.PROJECT_PATH }} vet
 
       - name: Lint
-        run: make lint
+        run: make -C ${{ env.PROJECT_PATH }} lint
 
   coverage:
     name: Coverage and Sonar
@@ -84,6 +84,7 @@ jobs:
 
   build:
     name: Build and Release
+    needs: [static-analysis, coverage]
     strategy:
       fail-fast: false
       matrix:

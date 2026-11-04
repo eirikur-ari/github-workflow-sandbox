@@ -34,10 +34,10 @@ jobs:
          cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
 
       - name: Vet
-        run: make vet
+        run: make -C ${{ env.PROJECT_PATH }} vet
 
       - name: Lint
-        run: make lint
+        run: make -C ${{ env.PROJECT_PATH }} lint
 
   coverage:
     name: ${{ github.event_name == 'pull_request' && 'Coverage and Sonar' || 'Coverage' }}
@@ -88,6 +88,7 @@ jobs:
             
   build:
     name: Dummy Build
+    needs: [static-analysis, coverage]
     strategy:
       fail-fast: false
       matrix:
