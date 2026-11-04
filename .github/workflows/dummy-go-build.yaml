@@ -52,5 +52,4 @@ jobs:
         uses: ./.github/actions/golang/package
         with:
           artifact-name: dist-${{ matrix.os }}
-          upload-artifact: 'true'
           project-path: ${{ env.PROJECT_PATH }}
