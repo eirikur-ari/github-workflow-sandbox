@@ -16,6 +16,76 @@ permissions:
   contents: read
 
 jobs:
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_PATH: samples/golang/dummy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+         go-version-file: ${{ env.PROJECT_PATH }}/go.mod
+         cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
+
+      - name: Vet
+        run: make vet
+
+      - name: Lint
+        run: make lint
+
+  coverage:
+    name: ${{ github.event_name == 'pull_request' && 'Coverage and Sonar' || 'Coverage' }}
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_PATH: samples/golang/dummy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ${{ env.PROJECT_PATH }}/go.mod
+
+      - name: Test with Coverage
+        run: make -C ${{ env.PROJECT_PATH }} coverage
+
+      - name: Coverage Summary
+        run: |
+          coverage=$(make --silent -C ${{ env.PROJECT_PATH }} coverage-summary)
+          echo "### Coverage: $coverage" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cache SonarQube packages
+        if: ${{ github.event_name == 'pull_request' && !github.event.repository.fork && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: SonarQube Scan
+        if: ${{ github.event_name == 'pull_request' && !github.event.repository.fork && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=${{ vars.SONAR_ORG_NAME }}
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY_GOLANG_DUMMY }}
+            -Dsonar.go.coverage.reportPaths=build/coverage.out
+            -Dsonar.exclusions=docs/**
+            -Dsonar.coverage.exclusions=**/*_test.go,internal/testutil/**
+            -Dsonar.qualitygate.wait=true
+            
   build:
     name: Dummy Build
     strategy:

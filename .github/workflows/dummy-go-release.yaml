@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version to release, for example 1.2.3, which must be the latest version in the changelog. Leave empty to release the latest version in the changelog after approval
+        description: Version to release, for example 1.2.3
         required: false
         type: string
 
@@ -12,39 +12,109 @@ permissions:
   contents: read
 
 jobs:
-    build:
-        name: Build and Release
-        strategy:
-          fail-fast: false
-          matrix:
-            os: [ubuntu-latest]
-        runs-on: ${{ matrix.os }}
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_PATH: samples/golang/dummy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+         go-version-file: ${{ env.PROJECT_PATH }}/go.mod
+         cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
+
+      - name: Vet
+        run: make vet
+
+      - name: Lint
+        run: make lint
+
+  coverage:
+    name: Coverage and Sonar
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_PATH: samples/golang/dummy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ${{ env.PROJECT_PATH }}/go.mod
+
+      - name: Test with Coverage
+        run: make -C ${{ env.PROJECT_PATH }} coverage
+
+      - name: Coverage Summary
+        run: |
+          coverage=$(make --silent -C ${{ env.PROJECT_PATH }} coverage-summary)
+          echo "### Coverage: $coverage" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cache SonarQube packages
+        if: ${{ !github.event.repository.fork && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: SonarQube Scan
+        if: ${{ !github.event.repository.fork && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
-          PROJECT_PATH: samples/golang/dummy
-        steps:
-          - name: Checkout repository
-            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-            with:
-              persist-credentials: false
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=${{ vars.SONAR_ORG_NAME }}
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY_GOLANG_DUMMY }}
+            -Dsonar.go.coverage.reportPaths=build/coverage.out
+            -Dsonar.exclusions=docs/**
+            -Dsonar.coverage.exclusions=**/*_test.go,internal/testutil/**
+            -Dsonar.qualitygate.wait=true
 
-          - name: Set up Go
-            uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-            with:
-              go-version-file: ${{ env.PROJECT_PATH }}/go.mod
-              cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
+  build:
+    name: Build and Release
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PROJECT_PATH: samples/golang/dummy
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-          - name: Test
-            run: make -C ${{ env.PROJECT_PATH }} test
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: ${{ env.PROJECT_PATH }}/go.mod
+          cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
 
-          - name: Build
-            run: make -C ${{ env.PROJECT_PATH }} build
+      - name: Test
+        run: make -C ${{ env.PROJECT_PATH }} test
 
-          - name: Acceptance Test
-            run: make -C ${{ env.PROJECT_PATH }} test-acceptance
-            
-          - name: Package
-            uses: ./.github/actions/golang/package
-            with:
-              artifact-name: dist-${{ matrix.os }}
-              upload-artifact: 'true'
-              project-path: ${{ env.PROJECT_PATH }}
+      - name: Build
+        run: make -C ${{ env.PROJECT_PATH }} build
+
+      - name: Acceptance Test
+        run: make -C ${{ env.PROJECT_PATH }} test-acceptance
+    
+      - name: Package
+        uses: ./.github/actions/golang/package
+        with:
+          artifact-name: dist-${{ matrix.os }}
+          upload-artifact: 'true'
+          project-path: ${{ env.PROJECT_PATH }}
