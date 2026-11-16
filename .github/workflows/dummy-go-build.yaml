@@ -39,8 +39,9 @@ jobs:
       - name: Lint
         run: make -C ${{ env.PROJECT_PATH }} lint
 
+  #coverage:
+  #  name: ${{ github.event_name == 'pull_request' && 'Coverage and Sonar' || 'Coverage' }}
   coverage:
-    name: ${{ github.event_name == 'pull_request' && 'Coverage and Sonar' || 'Coverage' }}
     runs-on: ubuntu-latest
     env:
       PROJECT_PATH: samples/golang/dummy
@@ -65,28 +66,36 @@ jobs:
           coverage=$(make --silent -C ${{ env.PROJECT_PATH }} coverage-summary)
           echo "### Coverage: $coverage" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Cache SonarQube packages
-        if: ${{ github.event_name == 'pull_request' && !github.event.repository.fork && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - name: actions/codecov
+        uses: codecov/codecov-action@v5
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          files: ${{ env.PROJECT_PATH }}/build/coverage.out
+          fail_ci_if_error: true
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: SonarQube Scan
-        if: ${{ github.event_name == 'pull_request' && !github.event.repository.fork && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=${{ vars.SONAR_ORG_NAME }}
-            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY_GOLANG_DUMMY }}
-            -Dsonar.go.coverage.reportPaths=build/coverage.out
-            -Dsonar.exclusions=docs/**
-            -Dsonar.coverage.exclusions=**/*_test.go,internal/testutil/**
-            -Dsonar.qualitygate.wait=false
-          projectBaseDir: ${{ env.PROJECT_PATH }}
+  #    - name: Cache SonarQube packages
+  #      if: ${{ github.event_name == 'pull_request' && !github.event.repository.fork && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+  #      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+  #      with:
+  #        path: ~/.sonar/cache
+  #        key: ${{ runner.os }}-sonar
+  #        restore-keys: ${{ runner.os }}-sonar
+
+  #    - name: SonarQube Scan
+  #      if: ${{ github.event_name == 'pull_request' && !github.event.repository.fork && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+  #      uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+  #      env:
+  #        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #      with:
+  #        args: >
+  #          -Dsonar.organization=${{ vars.SONAR_ORG_NAME }}
+  #          -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY_GOLANG_DUMMY }}
+  #          -Dsonar.go.coverage.reportPaths=build/coverage.out
+  #          -Dsonar.exclusions=docs/**
+  #          -Dsonar.coverage.exclusions=**/*_test.go,internal/testutil/**
+  #          -Dsonar.qualitygate.wait=false
+  #        projectBaseDir: ${{ env.PROJECT_PATH }}
             
   build:
     name: Dummy Build
