@@ -118,7 +118,7 @@ jobs:
   
   build:
     name: Dummy Build
-    needs: [static-analysis, coverage]
+    needs: [static-analysis, coverage, test]
     strategy:
       fail-fast: false
       matrix:
