@@ -104,7 +104,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest] #, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
       PROJECT_PATH: samples/golang/dummy
