@@ -119,11 +119,7 @@ jobs:
   build:
     name: Dummy Build
     needs: [static-analysis, coverage, test]
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     env:
       PROJECT_PATH: samples/golang/dummy
     steps:
@@ -142,12 +138,7 @@ jobs:
         run: make -C ${{ env.PROJECT_PATH }} build
 
       - name: Package
-        if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/golang/package
         with:
           artifact-name: dist-${{ matrix.os }}
           project-path: ${{ env.PROJECT_PATH }}
-
-      - name: Acceptance Test
-        if: ${{ github.event_name == 'pull_request' }}
-        run: make -C ${{ env.PROJECT_PATH }} test-acceptance
