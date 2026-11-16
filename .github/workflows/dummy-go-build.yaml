@@ -66,13 +66,14 @@ jobs:
           coverage=$(make --silent -C ${{ env.PROJECT_PATH }} coverage-summary)
           echo "### Coverage: $coverage" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: actions/codecov
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           files: ${{ env.PROJECT_PATH }}/build/coverage.out
           fail_ci_if_error: true
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
+          override_branch: ${{ github.ref_name }}
 
   #    - name: Cache SonarQube packages
   #      if: ${{ github.event_name == 'pull_request' && !github.event.repository.fork && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -97,6 +98,24 @@ jobs:
   #          -Dsonar.qualitygate.wait=false
   #        projectBaseDir: ${{ env.PROJECT_PATH }}
             
+  test:
+    name: Dummy Test
+    needs: [static-analysis, coverage]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PROJECT_PATH: samples/golang/dummy
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Test
+        run: make -C ${{ env.PROJECT_PATH }} test
+  
   build:
     name: Dummy Build
     needs: [static-analysis, coverage]
@@ -119,15 +138,8 @@ jobs:
           go-version-file: ${{ env.PROJECT_PATH }}/go.mod
           cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
 
-      - name: Test
-        run: make -C ${{ env.PROJECT_PATH }} test
-
       - name: Build
         run: make -C ${{ env.PROJECT_PATH }} build
-
-      - name: Acceptance Test
-        if: ${{ github.event_name == 'pull_request' }}
-        run: make test-acceptance
 
       - name: Package
         if: ${{ github.event_name == 'pull_request' }}
@@ -135,3 +147,7 @@ jobs:
         with:
           artifact-name: dist-${{ matrix.os }}
           project-path: ${{ env.PROJECT_PATH }}
+
+      - name: Acceptance Test
+        if: ${{ github.event_name == 'pull_request' }}
+        run: make test-acceptance
