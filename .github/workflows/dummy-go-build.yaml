@@ -150,4 +150,4 @@ jobs:
 
       - name: Acceptance Test
         if: ${{ github.event_name == 'pull_request' }}
-        run: make test-acceptance
+        run: make -C ${{ env.PROJECT_PATH }} test-acceptance

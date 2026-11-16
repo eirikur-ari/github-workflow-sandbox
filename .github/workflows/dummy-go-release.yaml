@@ -111,9 +111,6 @@ jobs:
 
       - name: Build
         run: make -C ${{ env.PROJECT_PATH }} build
-
-      - name: Acceptance Test
-        run: make -C ${{ env.PROJECT_PATH }} test-acceptance
     
       - name: Package
         uses: ./.github/actions/golang/package
@@ -121,3 +118,6 @@ jobs:
           artifact-name: dist-${{ matrix.os }}
           upload-artifact: 'true'
           project-path: ${{ env.PROJECT_PATH }}
+
+      - name: Acceptance Test
+        run: make -C ${{ env.PROJECT_PATH }} test-acceptance
