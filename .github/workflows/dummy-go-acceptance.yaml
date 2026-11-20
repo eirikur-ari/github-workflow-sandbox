@@ -29,7 +29,7 @@ jobs:
           cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
 
       - name: Build
-        run: make -C ${{ env.PROJECT_PATH }} build
+        run: make -C ${{ env.PROJECT_PATH }} build-all
 
       - name: Package
         shell: bash

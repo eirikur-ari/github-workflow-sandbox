@@ -55,9 +55,12 @@ fmt-lint:
 ## build: Compile the binary
 .PHONY: build
 build:
-	@echo "Running build..."
-	@mkdir -p $(BIN_DIR)
-	go build -ldflags "$(LDFLAGS)" -o $(BIN_DIR)/$(BINARY_NAME) ./cmd
+	bash scripts/build.sh host
+
+## build-all: Compile the binary for every release platform, optionally stamped with a release version
+.PHONY: build-all
+build-all:
+	bash scripts/build.sh all
 
 ## test: Run the tests
 .PHONY: test
@@ -91,7 +94,5 @@ coverage-html:
 
 ## package: Package the binary and related files into a tar.gz archive
 .PHONY: package
-package: build
-	@mkdir -p $(PACKAGE_DIR) $(DIST_DIR)
-	cp -r $(BIN_DIR)/$(BINARY_NAME) LICENSE README.md CHANGELOG.md $(PACKAGE_DIR)/
-	tar -czf $(DIST_DIR)/$(BINARY_NAME)-$(OS)-$(ARCH).tar.gz -C $(PACKAGE_DIR) .
+package:
+	bash scripts/package.sh
