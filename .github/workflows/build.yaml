@@ -35,7 +35,7 @@ jobs:
           if [ "$EVENT" = workflow_dispatch ]; then
             echo "code=true"
           else
-            ./scripts/changes.sh '*.md' .gitignore LICENSE
+            bash .github/scripts/changes.sh '*.md' .gitignore LICENSE
           fi >> "$GITHUB_OUTPUT"
           
   static-analysis:
