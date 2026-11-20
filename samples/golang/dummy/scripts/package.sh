@@ -25,7 +25,7 @@ function stagePackage() {
 
   mkdir -p "$PACKAGE_DIR/docs"
   cp "$BIN_DIR/${goos}_${goarch}/$BINARY_NAME" LICENSE README.md CHANGELOG.md "$PACKAGE_DIR/"
-  cp -R docs/images "$PACKAGE_DIR/docs/"
+  #cp -R docs/images "$PACKAGE_DIR/docs/"
 }
 
 # Archives the content of the package directory into the given archive path
