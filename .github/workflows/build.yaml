@@ -1,4 +1,4 @@
-name: Dummy Go Build
+name: Build
 
 on:
   workflow_dispatch:
@@ -19,8 +19,6 @@ jobs:
   static-analysis:
     name: Static analysis
     runs-on: ubuntu-latest
-    env:
-      PROJECT_PATH: samples/golang/dummy
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -30,39 +28,35 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-         go-version-file: ${{ env.PROJECT_PATH }}/go.mod
-         cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
+         go-version-file: go.mod
+         cache-dependency-path: go.mod
 
       - name: Vet
-        run: make -C ${{ env.PROJECT_PATH }} vet
+        run: make vet
 
       - name: Lint
-        run: make -C ${{ env.PROJECT_PATH }} lint
+        run: make lint
             
   test:
-    name: Dummy Test
+    name: Test
     needs: static-analysis
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest] #, macos-latest]
     runs-on: ${{ matrix.os }}
-    env:
-      PROJECT_PATH: samples/golang/dummy
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Test
-        run: make -C ${{ env.PROJECT_PATH }} test
+        run: make test
   
   build:
-    name: Dummy Build
+    name: Build
     needs: [static-analysis, test]
     runs-on: ubuntu-latest
-    env:
-      PROJECT_PATH: samples/golang/dummy
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -72,17 +66,17 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: ${{ env.PROJECT_PATH }}/go.mod
-          cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
+          go-version-file: go.mod
+          cache-dependency-path: go.mod
 
       - name: Build
-        run: make -C ${{ env.PROJECT_PATH }} build-all
+        run: make build-all
 
       - name: Package
-        run: make -C ${{ env.PROJECT_PATH }} package
+        run: make package
 
       - name: Upload Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist
-          path: ${{ env.PROJECT_PATH }}/build/dist
+          path: build/dist

@@ -5,11 +5,8 @@ on:
   push:
   workflow_dispatch:
 
-env:
-  PROJECT_PATH: samples/golang/dummy
-
 jobs:
-  test:
+  coverage:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,25 +17,25 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: ${{ env.PROJECT_PATH }}/go.mod
-          cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
+          go-version-file: go.mod
+          cache-dependency-path: go.mod
 
       - name: Test with Coverage
-        run: make -C ${{ env.PROJECT_PATH }} coverage
+        run: make coverage
 
       - name: Coverage Summary
         run: |
-          coverage=$(make --silent -C ${{ env.PROJECT_PATH }} coverage-summary)
+          coverage=$(make --silent coverage-summary)
           echo "### Coverage: $coverage" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage.out
-          path: ${{ env.PROJECT_PATH }}/build
+          path: build
 
   codecov:
-    needs: test
+    needs: coverage
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -48,12 +45,12 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: coverage.out
-          path: ${{ env.PROJECT_PATH }}/build
+          path: build
 
       - name: Upload Report to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
-          files: ${{ env.PROJECT_PATH }}/build/coverage.out
+          files: build/coverage.out
           token: ${{ secrets.CODECOV_TOKEN }}
           override_branch: ${{ github.ref_name }}
           verbose: true
@@ -61,7 +58,7 @@ jobs:
 
   sonar:
     if: (github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) || (github.event_name == 'pull_request' && github.base_ref == github.event.repository.default_branch)
-    needs: test
+    needs: coverage
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout
@@ -74,7 +71,7 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: coverage.out
-          path: ${{ env.PROJECT_PATH }}/build
+          path: build
 
       - name: Cache Sonar packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -95,23 +92,22 @@ jobs:
             -Dsonar.exclusions=docs/**
             -Dsonar.coverage.exclusions=**/*_test.go,internal/testutil/**
             -Dsonar.qualitygate.wait=false
-          projectBaseDir: ${{ env.PROJECT_PATH }}
 
   quality:
     if: always()
-    needs: [test, codecov, sonar]
+    needs: [coverage, codecov, sonar]
     runs-on: ubuntu-latest
     steps:
       - name: Report the result of each job
         env:
-          TEST: ${{ needs.test.result }}
+          COVERAGE: ${{ needs.coverage.result }}
           CODECOV: ${{ needs.codecov.result }}
           SONAR: ${{ needs.sonar.result }}
         run: |
           {
             echo "| Job | Result |"
             echo "|---|---|"
-            echo "| test | $TEST |"
+            echo "| coverage | $COVERAGE |"
             echo "| codecov | $CODECOV |"
             echo "| sonar | $SONAR |"
           } | tee -a "$GITHUB_STEP_SUMMARY"
@@ -119,5 +115,5 @@ jobs:
         if: >-
           contains(needs.*.result, 'failure')
           || contains(needs.*.result, 'cancelled')
-          || needs.test.result == 'skipped'
+          || needs.coverage.result == 'skipped'
         run: exit 1

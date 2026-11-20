@@ -1,10 +1,12 @@
-name: Dummy Acceptance Test
+name: Release
 
 on:
-  pull_request:
-    branches: [master, "release/**"]
-    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, for example 1.2.3
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -13,9 +15,35 @@ env:
   PROJECT_PATH: samples/golang/dummy
 
 jobs:
-  build:
-    name: Dummy Build
+  static-analysis:
+    name: Static analysis
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+         go-version-file: ${{ env.PROJECT_PATH }}/go.mod
+         cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
+
+      - name: Vet
+        run: make -C ${{ env.PROJECT_PATH }} vet
+
+      - name: Lint
+        run: make -C ${{ env.PROJECT_PATH }} lint
+
+  build:
+    name: Build
+    needs: static-analysis
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -28,12 +56,22 @@ jobs:
           go-version-file: ${{ env.PROJECT_PATH }}/go.mod
           cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
 
+      - name: Test
+        run: make -C ${{ env.PROJECT_PATH }} test
+
       - name: Build
         run: make -C ${{ env.PROJECT_PATH }} build-all
+    
+      - name: Package
+        uses: ./.github/actions/golang/package
+        with:
+          artifact-name: dist
+          upload-artifact: 'true'
+          project-path: ${{ env.PROJECT_PATH }}
 
       - name: Package
         run: make -C ${{ env.PROJECT_PATH }} package
-      
+
       - name: Upload Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
