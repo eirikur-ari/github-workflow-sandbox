@@ -71,4 +71,4 @@ jobs:
       - name: Acceptance Test
         run: make -C ${{ env.PROJECT_PATH }} test-acceptance
         env:
-          DUMMY_BINARY: ${{ env.PROJECT_PATH }}/build/acceptance/dummy
+          DUMMY_BINARY: ${{ github.workspace }}/${{ env.PROJECT_PATH }}/build/acceptance/dummy
