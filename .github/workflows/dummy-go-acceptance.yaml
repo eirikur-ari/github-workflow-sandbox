@@ -35,7 +35,7 @@ jobs:
         uses: ./.github/actions/golang/package
         with:
           artifact-name: dist-${{ matrix.os }}
-          project-path: ${{ env.PROJECT_PATH }}
+          project-path: ${{ env.PROJECT_PATH }}/build/dist
       
       - name: Upload Artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
