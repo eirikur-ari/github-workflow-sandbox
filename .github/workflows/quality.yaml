@@ -102,11 +102,22 @@ jobs:
     needs: [test, codecov, sonar]
     runs-on: ubuntu-latest
     steps:
-      - env:
-          EVENT: ${{ github.event_name }}
+      - name: Report the result of each job
+        env:
           TEST: ${{ needs.test.result }}
-          SONAR: ${{ needs.sonar.result }}
           CODECOV: ${{ needs.codecov.result }}
+          SONAR: ${{ needs.sonar.result }}
         run: |
-          echo "test=$TEST sonar=$SONAR codecov=$CODECOV (codecov is informational)"
-          [ "$TEST" = success ] && [ "$SONAR" = success ]
+          {
+            echo "| Job | Result |"
+            echo "|---|---|"
+            echo "| test | $TEST |"
+            echo "| codecov | $CODECOV |"
+            echo "| sonar | $SONAR |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Fail if a job failed or no tests ran
+        if: >-
+          contains(needs.*.result, 'failure')
+          || contains(needs.*.result, 'cancelled')
+          || needs.test.result == 'skipped'
+        run: exit 1

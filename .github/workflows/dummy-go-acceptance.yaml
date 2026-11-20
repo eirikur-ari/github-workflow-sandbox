@@ -1,4 +1,4 @@
-name: Acceptance
+name: DummyAcceptance
 
 on:
   pull_request:
