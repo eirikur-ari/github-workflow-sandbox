@@ -4,6 +4,9 @@ description: Scratchpad for testing GitHub Actions workflows
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   scratchpad:
     runs-on: ubuntu-latest
@@ -15,3 +18,9 @@ jobs:
 
       - name: Smu
         run: echo "Smu!!!!!" >> $GITHUB_STEP_SUMMARY
+
+      - name: Show how the group expression evaluates
+        run: |
+          echo "without inner parens: ${{ github.ref_name == github.event.repository.default_branch && github.sha }}"
+          echo "with inner parens:    ${{ (github.ref_name == github.event.repository.default_branch) && github.sha }}"
+          echo "&& evaluated first:   ${{ github.ref_name == (github.event.repository.default_branch && github.sha) }}"

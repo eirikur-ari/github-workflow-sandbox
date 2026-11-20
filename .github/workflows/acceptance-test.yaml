@@ -38,7 +38,7 @@ jobs:
           path: build/dist
 
   acceptance:
-    name: Acceptance Test ${{ matrix.os }}
+    name: Test on ${{ matrix.os }}
     needs: build
     strategy:
       fail-fast: false
