@@ -32,7 +32,6 @@ jobs:
         run: make -C ${{ env.PROJECT_PATH }} build-all
 
       - name: Package
-        shell: bash
         run: make -C ${{ env.PROJECT_PATH }} package
       
       - name: Upload Artifact
@@ -71,3 +70,5 @@ jobs:
 
       - name: Acceptance Test
         run: make -C ${{ env.PROJECT_PATH }} test-acceptance
+        env:
+          DUMMY_BINARY: ${{ env.PROJECT_PATH }}/build/acceptance/dummy

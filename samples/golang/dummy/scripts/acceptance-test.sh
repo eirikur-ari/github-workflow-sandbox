@@ -36,7 +36,7 @@ function extract() {
 
 # Runs the acceptance tests against the binary, failing when it does not exist
 function run() {
-  local binary="${PIDSHOOTER_BINARY:-$WORKSPACE_FOLDER/$BIN_DIR/$BINARY_NAME}"
+  local binary="${DUMMY_BINARY:-$WORKSPACE_FOLDER/$BIN_DIR/$BINARY_NAME}"
 
   if [[ ! -x "$binary" ]]; then
     echo "the binary to test does not exist: $binary" >&2

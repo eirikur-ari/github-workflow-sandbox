@@ -76,10 +76,13 @@ jobs:
           cache-dependency-path: ${{ env.PROJECT_PATH }}/go.mod
 
       - name: Build
-        run: make -C ${{ env.PROJECT_PATH }} build
+        run: make -C ${{ env.PROJECT_PATH }} build-all
 
       - name: Package
-        uses: ./.github/actions/golang/package
+        run: make -C ${{ env.PROJECT_PATH }} package
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          artifact-name: dist-${{ matrix.os }}
-          project-path: ${{ env.PROJECT_PATH }}
+          name: dist
+          path: ${{ env.PROJECT_PATH }}/build/dist
