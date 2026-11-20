@@ -1,4 +1,4 @@
-name: DummyAcceptance
+name: Dummy Acceptance Test
 
 on:
   pull_request:
