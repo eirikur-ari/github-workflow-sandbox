@@ -1,2 +1,2 @@
-# github-workflow-sandbox
-Sandbox for GitHub Workflows
+# sandbox-go-workflow
+Sandbox Workflows for Golang Projects
