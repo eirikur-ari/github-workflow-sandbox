@@ -67,9 +67,10 @@ test:
 
 ## test-acceptance: Run the acceptance tests
 .PHONY: test-acceptance
-test-acceptance: build
-	@echo "Running acceptance tests..."
-	DUMMY_BINARY=$(WORKSPACE_FOLDER)/$(BIN_DIR)/$(BINARY_NAME) go test -v -tags acceptance -run TestAcceptance -race -count=1 ./...
+## test-acceptance: Run only acceptance tests against the built binary, failing if it does not exist
+.PHONY: test-acceptance
+test-acceptance:
+	bash scripts/acceptance-test.sh run
 
 ## coverage: Run unit and integration tests with the race detector, then print a function coverage report
 .PHONY: coverage
