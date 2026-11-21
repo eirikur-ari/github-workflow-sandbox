@@ -6,11 +6,6 @@ on:
       - master
       - "release/**"
   push:
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'LICENSE'
-      - '.github/**'
   workflow_dispatch:
 
 permissions:
