@@ -6,6 +6,6 @@ func main() {
 	fmt.Println("5 + 3 =", add(5, 3))
 }
 
-func plu(a, b int) int {
+func add(a, b int) int {
 	return a + b
 }
