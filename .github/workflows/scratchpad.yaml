@@ -24,3 +24,4 @@ jobs:
           echo "without inner parens: ${{ github.ref_name == github.event.repository.default_branch && github.sha }}"
           echo "with inner parens:    ${{ (github.ref_name == github.event.repository.default_branch) && github.sha }}"
           echo "&& evaluated first:   ${{ github.ref_name == (github.event.repository.default_branch && github.sha) }}"
+          echo "with outer parens:    ${{ (github.ref_name == github.event.repository.default_branch && github.sha) }}"
