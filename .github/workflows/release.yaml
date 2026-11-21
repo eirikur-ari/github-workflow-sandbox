@@ -33,14 +33,27 @@ jobs:
       - name: Lint
         run: make lint
 
-  build:
-    name: Build
+  test:
+    name: Test
     needs: static-analysis
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest] #, macos-latest]
     runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Test
+        run: make test
+
+  build:
+    name: Build
+    needs: [static-analysis, test]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -53,8 +66,8 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.mod
 
-      - name: Test
-        run: make test
+      - name: Build
+        run: make build-all
 
       - name: Package
         run: make package
@@ -67,7 +80,7 @@ jobs:
           retention-days: 30
 
   acceptance:
-    name: Dummy Acceptance ${{ matrix.os }}
+    name: Acceptance Test
     needs: build
     strategy:
       fail-fast: false

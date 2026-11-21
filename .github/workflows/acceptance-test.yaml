@@ -36,6 +36,7 @@ jobs:
         with:
           name: dist
           path: build/dist
+          retention-days: 7
 
   acceptance:
     name: Acceptance Test
